@@ -234,18 +234,83 @@ namespace apiToDo.Controllers
 
 
 
-        [HttpGet("DeletarTarefa")]
-        public ActionResult DeleteTask([FromQuery] int ID_TAREFA)
+        /// <summary>
+        /// Método do Controller de deleção de tarefas cadastradas no sistema
+        /// </summary>
+        /// <param name="ID_TAREFA"></param>
+        /// <returns></returns>
+        [HttpDelete("DeletarTarefa/")]
+        public ActionResult<IEnumerable<TarefaDTO>> DeleteTask([FromQuery] int ID_TAREFA)
         {
             try
             {
 
-                return StatusCode(200);
+                /*
+                 *  Criamos uma variável booleana que utilizaremos 
+                 *  para avaliar se o paramêtro ID_TAREFA é negativo
+                 *  ou igual a zero
+                 */
+                bool testeIdTarefa = ID_TAREFA <= 0;
+
+                /*
+                 * Se o valor da variável testeIdTarefa for igual a
+                 * verdadeiro retornamos um status 400 e uma mensagem
+                 * de erro, pois os números usados como identificados 
+                 * começam a partir do número 1
+                 */
+                if (testeIdTarefa)
+                {
+                    return BadRequest("Ocorreu um erro ao deletar a Tarefa solicitada, o identificador do recurso soliciatado é inválido tente novamente mais tarde.");
+                }
+
+                /*
+                 * Se existir alguns itens da lista de tarefas cadastradas
+                 * com o ID_TAREFA igual ao solicitado retorna uma lista com 
+                 * esses itens
+                 */
+                var testeEstaCadastrado = acessoTarefas.lstTarefas().Where(tarefa => tarefa.ID_TAREFA == ID_TAREFA);
+
+
+                /*
+                 * Testa se a lista dessas tarefas com ID igual ao passado
+                 * possui algum item ou está vazia
+                 */
+                bool eVazio = testeEstaCadastrado.Count() == 0;
+
+                /*
+                 * Se eVazio for igual a verdadeiro envia uma mensagem de erro 
+                 * informando que não foi possível deletar a Tarefa que possuia
+                 * o identificador solicitado
+                 */
+                if (eVazio)
+                {
+                    return BadRequest("Ocorreu um erro ao deletar a Tarefa solicitada, o identificador não existe ou foi deletado, tente novamente mais tarde.");
+                }
+
+                /*
+                 * Se depois de ser avaliado o ID_TAREFA é um
+                 * número válido de como identificador, acessamos
+                 * o método de deletar tarefa passando o ID_TAREFA
+                 * como parametro 
+                 */
+                acessoTarefas.DeletarTarefa(ID_TAREFA);
+
+                /*
+                 * Após ter sido deletado com sucesso retornamos o 
+                 * código 200 juntamente com a lista de Tarefas restantes
+                 * depois da deleção solicitada
+                 */
+                return Ok(acessoTarefas.lstTarefas());
             }
 
             catch (Exception ex)
             {
-                return StatusCode(400, new { msg = $"Ocorreu um erro em sua API {ex.Message}" });
+                /*
+                 * Caso tenha ocorrido alguma falha durante o processo
+                 * de deleção retornamos o código 500 e uma mensagem
+                 * de erro
+                 */
+                return Problem("Ocorreu um erro durante o processo de deleção da Tarefa solicitada, tente novamente mais tarde.");
             }
         }
     }
