@@ -71,7 +71,6 @@ namespace apiToDo.Controllers
         }
 
 
-
         /// <summary>
         /// Método do Controller de pesquisa de uma tarefa dentre as cadastradas no sistema
         /// </summary>
@@ -193,6 +192,46 @@ namespace apiToDo.Controllers
                 return Problem("Ocorreu um erro durante o processo de inserção da Tarefa solicitada, tente novamente mais tarde.");
             }
         }
+
+        /// <summary>
+        /// Método do Controller de atualização de uma tarefa cadastrada no sistema
+        /// </summary>
+        /// <param name="ID_TAREFA"></param>
+        /// <returns></returns>
+        [HttpPut("AtualizarTarefa/{ID_TAREFA}")]
+        public ActionResult<IEnumerable<TarefaDTO>> AtualizarTarefa([FromBody] TarefaDTO Request)
+        {
+            try
+            {
+
+                /*
+                 * Para atualizarmos um registro primeiro deletamos
+                 * o registro que anteriormente possuia esse identidicador
+                 * e em seguida inserimos um novo registro com mesmo
+                 * identificador porém atualizado
+                 */
+                acessoTarefas.DeletarTarefa(Request.ID_TAREFA);
+                acessoTarefas.InserirTarefa(Request);
+
+                /*
+                 * Caso o processo de listagem tenha ocorrida corretamente 
+                 * até o momento retornamos o código 200 juntamente com o 
+                 * objeto tarefa solicitado
+                 */
+                return Ok(acessoTarefas.lstTarefas());
+            }
+
+            catch (Exception ex)
+            {
+                /*
+                * Caso tenha ocorrido alguma falha durante o processo
+                * de deleção retornamos o código 500 e uma mensagem
+                * de erro
+                */
+                return BadRequest("Ocorreu um erro não foi possível atualizar a Tarefa solicitada, tente novamente mais tarde.");
+            }
+        }
+
 
 
         [HttpGet("DeletarTarefa")]
